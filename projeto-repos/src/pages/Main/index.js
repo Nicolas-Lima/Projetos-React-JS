@@ -23,20 +23,36 @@ function Main() {
   const [newRepo, setNewRepo] = useState("");
   const [repositorios, setRepositorios] = useState([]);
   const [loading, setLoading] = useState(false);
+   const [pageLoading, setPageLoading] = useState(true);
 
-  // Buscar
 
   useEffect(() => {
+    // Buscar
     const storedRepos = localStorage.getItem("repos");
-    if (storedRepos) {
+    if (storedRepos && JSON.parse(storedRepos).length) {
       setRepositorios(JSON.parse(storedRepos));
     }
+
+    // Salvando o repositório "facebook/react" como padrão na primeira visita do usuário ao site.
+
+    const firstTime = !localStorage.getItem("firstTime");
+    if (firstTime) {
+      setRepositorios([
+        {
+          name: "facebook/react",
+        },
+      ]);
+      localStorage.setItem("firstTime", "false");
+      return;
+    }
+
+    setPageLoading(false)
   }, []);
 
   // Salvar alterações
 
   useEffect(() => {
-    if (repositorios && repositorios.length) {
+    if (!pageLoading) {
       localStorage.setItem("repos", JSON.stringify(repositorios));
     }
   }, [repositorios]);
@@ -52,14 +68,6 @@ function Main() {
     },
     [repositorios]
   );
-
-  useEffect(() => {
-    console.clear();
-    console.group("Documentar");
-    console.log("Documentar STYLED COMPONENTS se tiver algo novo");
-    console.log("Documentar Hook 'useCallback' se tiver algo novo");
-    console.groupEnd();
-  }, []);
 
   const handleSubmit = useCallback(
     e => {
@@ -144,7 +152,7 @@ function Main() {
       </Form>
 
       <List>
-        {repositorios.map((repo, index) => (
+        {repositorios?.map((repo, index) => (
           <li key={`${repo.name}-${index}`}>
             <span>
               <DeleteButton
